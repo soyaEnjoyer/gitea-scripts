@@ -1,0 +1,6 @@
+[Unit]
+RequiresMountsFor=/docker/home/gitea
+
+[Service]
+ExecStart=/usr/local/bin/gitea-backup.sh
+
