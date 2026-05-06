@@ -1,14 +1,12 @@
 import { GITEA_URL, GITHUB_TOKEN, GITHUB_USER, headers } from '@/lib/env.ts';
 import { pushMirrorGetSchema, PushMirrorPost, repoSchema } from '@/lib/schemas.ts';
 import { z } from '@zod/zod';
-import { exit } from 'node:process';
-
 // https://docs.gitea.com/api/1.25/#tag/repository/operation/repoListPushMirrors
 
 const GITHUB_URL = 'https://github.com';
 const PUSH_INTERVAL = '8h0m0s';
 
-const repos = await fetch(new URL('/api/v1/user/repos', GITEA_URL), { headers })
+const repos = await fetch(new URL('/api/v1/user/repos?limit=1000', GITEA_URL), { headers })
   .then((response) => response.json())
   .then((json) => z.array(repoSchema).parse(json));
 
@@ -49,13 +47,14 @@ for (const repo of repos) {
   for (const pushMirror of pushMirrors) {
     if (pushMirror.remote_address.replace(/\/$/, '') === post.remote_address) continue;
     console.warn(`deleting ${pushMirror.remote_address}`);
-    //TODO: delete this
-    exit();
-    const deleteResponse = await fetch(`/api/v1/repos/${repo.full_name}/push_mirrors/${pushMirror.remote_name}`, {
-      headers,
-      method: 'DELETE',
-    });
-    if (!deleteResponse.ok) throw new Error(`coult not delete push mirror: ${await deleteResponse.text()}`);
+    const deleteResponse = await fetch(
+      new URL(`/api/v1/repos/${repo.full_name}/push_mirrors/${pushMirror.remote_name}`, GITEA_URL),
+      {
+        headers,
+        method: 'DELETE',
+      },
+    );
+    if (!deleteResponse.ok) throw new Error(`could not delete push mirror: ${await deleteResponse.text()}`);
     console.info('deleted', pushMirror.remote_address);
     updated = true;
   }
