@@ -7,6 +7,7 @@ const BRANCH_FROM = 'master';
 const BRANCH_TO = 'main';
 
 const HOME = env.HOME;
+
 if (!HOME) throw new Error('HOME is not set');
 const ROOT = join(HOME, 'Code');
 
